@@ -1,0 +1,10 @@
+.cursor-ball {
+  $root:&;
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:990;
+  pointer-events:none;
+  transform-style: preserve-3d;
+  transition:opacity 0.3s, color 0.4s;
+}
