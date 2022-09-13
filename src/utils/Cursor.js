@@ -365,6 +365,10 @@ export default class DvbCursor {
     });
   }
 
+  updatePhysics() {
+    
+  }
+
   getAllPointerElements(newSection = null) {
     const container = newSection ? newSection : document;
 
@@ -417,3 +421,33 @@ export default class DvbCursor {
   }
 }
 
+function calcSpeed(x1,x2,y1,y2) {
+  const xDiff = x2 - x1
+  const yDiff = y2 - y1
+
+  const diff = Math.pow(xDiff,2) + Math.pow(yDiff,2)
+
+  return diff <= 6 ? 0 : Math.sqrt(diff)
+
+}
+
+function calcAngle(x1,x2,y1,y2) {
+
+  const dx = x2 - x1
+  const dy = y2 - y1
+  // Angle in deg
+  const deg = Math.atan2(dy,dx) * (180 / Math.PI)
+
+  return deg < 0 ? 360 - Math.abs(deg) : deg
+
+}
+
+function calcAngleDiff(ang1,ang2) {
+
+  const reverted = ang1 > 180 ? (360 - ang1) + ang2 : (360 - ang2) + ang1
+
+  const diff1 = Math.abs( ang2 - ang1 )
+  const diff2 = reverted
+
+  return diff1 < diff2 ? diff1 : diff2
+}
