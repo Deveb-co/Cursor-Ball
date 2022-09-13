@@ -43,6 +43,71 @@ export default class DvbCursor {
 
   bind() {
 
+    this.bindEventListeners()
+
+    // Hide cursor ball on mouse leaving the container
+    this.body.addEventListener('mouseleave', this.hideCursorBall)
+
+    // Show cursor ball on mouse leaving the container
+    this.body.addEventListener('mouseenter', this.showCursorBall)
+
+    // update cursor ball position on mouse move
+    this.body.addEventListener('mousemove', this.updateOnMouseMove)
+
+    // Reduce cursor ball size to indicate mouse left click down
+    this.body.addEventListener('mousedown', this.pointerActive)
+
+    // Change the cursor ball size back to normal after mouse left click up
+    this.body.addEventListener('mouseup', this.pointerDeactive)
+
+    // Change the cursor ball size back to normal after drag end
+    this.body.addEventListener('dragend', this.pointerDeactive)
+
+    // Get all the elements we need for different cursor modes
+    const {
+      pointerStateElements,
+      iframes,
+      dataCursorElements,
+      cursorTextElements,
+      cursorStickElements
+    } = this.getAllPointerElements()
+
+    // Set cursor to pointer when hovers on links, inputs, textarea and buttons
+    pointerStateElements.forEach( el => {
+      el.addEventListener('mouseover', this.onCursor6)
+      el.addEventListener('mouseleave', this.onCursor7)
+    })
+    
+    // Hide cursor ball when an Iframe is hovered
+    iframes.forEach( el => {
+      el.addEventListener('mouseenter',this.showCursorBall)
+      el.addEventListener('mouseleave',this.hideCursorBall)
+    })
+    
+    // Get elements with data-cursor and apply the classes or state to cursor ball
+    dataCursorElements.forEach( el => {
+      el.addEventListener('mouseenter',this.addCustomState)
+      el.addEventListener('mouseleave',this.removeCustomState)
+    })
+
+    // Add cursor text to elements with cursor-text
+    cursorTextElements.forEach( el => {
+      el.addEventListener('mouseenter',this.setCursorText)
+      el.addEventListener('mouseleave',this.removeCursorText)
+    })
+
+    // Add cursor stick for elements with cursor-stick
+    cursorStickElements.forEach( el => {
+      el.addEventListener('mouseenter',this.enableStick)
+      el.addEventListener('mouseleave',this.disableStick)
+    })
+    
+    // Reset cursor ball mousemove on window resize
+    // window.addEventListener('resize', this.resetMousemoveOnResize )
+  }
+
+  bindEventListeners() {
+
     this.hideCursorBall = function() {
       this.hide();
     }
@@ -117,7 +182,7 @@ export default class DvbCursor {
       this.setState('-pointer')
     }
 
-    this.removePointerState = function onCursor7() {
+    this.removePointerState = function() {
       this.removeState('-pointer')
     }
 
@@ -152,68 +217,55 @@ export default class DvbCursor {
       this.body.removeEventListener('mousemove', this.updateOnMouseMove)
       this.body.addEventListener('mousemove', this.updateOnMouseMove)
     }
+  }
 
-    // Hide cursor ball on mouse leaving the container
-    this.body.addEventListener('mouseleave', this.hideCursorBall)
+  removeAllEventListeners() {
+    this.body.removeEventListener('mouseleave', this.hideCursorBall)
+    .removeEventListener('mouseenter', this.showCursorBall)
+    .removeEventListener('mouseover', this.showCursorBall)
+    .removeEventListener('mousemove', this.updateOnMouseMove)
+    .removeEventListener('mousedown', this.pointerActive)
+    .removeEventListener('mouseup', this.pointerDeactive)
+    .removeEventListener('dragend', this.pointerDeactive)
 
-    // Show cursor ball on mouse leaving the container
-    this.body.addEventListener('mouseenter', this.showCursorBall)
-
-    // update cursor ball position on mouse move
-    this.body.addEventListener('mousemove', this.updateOnMouseMove)
-
-    // Reduce cursor ball size to indicate mouse left click down
-    this.body.addEventListener('mousedown', this.pointerActive)
-
-    // Change the cursor ball size back to normal after mouse left click up
-    this.body.addEventListener('mouseup', this.pointerDeactive)
-
-    // Change the cursor ball size back to normal after drag end
-    this.body.addEventListener('dragend', this.pointerDeactive)
-
-    // Set cursor to pointer when hovers on links, inputs, textarea and buttons
-    const pointerStateElements = []
-    pointerStateElements.push( Array.from(document.querySelectorAll('a')) )
-    pointerStateElements.push( Array.from(document.querySelectorAll('input')) )
-    pointerStateElements.push( Array.from(document.querySelectorAll('textarea')) )
-    pointerStateElements.push( Array.from(document.querySelectorAll('button')) )
+    // Get all the elements we need for different cursor modes
+    const {
+      pointerStateElements,
+      iframes,
+      dataCursorElements,
+      cursorTextElements,
+      cursorStickElements
+    } = this.getAllPointerElements()
 
     pointerStateElements.forEach( el => {
-      el.addEventListener('mouseover', this.onCursor6)
-      el.addEventListener('mouseleave', this.onCursor7)
+      el.removeEventListener('mouseenter', this.setPointerState)
+      el.removeEventListener('mouseleave', this.removePointerState)
     })
-    
-    // Hide cursor ball when an Iframe is hovered
-    const iframes = Array.from( document.querySelectorAll('iframe') )
+
     iframes.forEach( el => {
-      el.addEventListener('mouseenter',this.showCursorBall)
-      el.addEventListener('mouseleave',this.hideCursorBall)
+      el.removeEventListener('mouseenter',this.showCursorBall)
+      el.removeEventListener('mouseleave',this.hideCursorBall)
     })
     
     // Get elements with data-cursor and apply the classes or state to cursor ball
-    const dataCursorElements = Array.from( document.querySelectorAll('[data-cursor]') )
     dataCursorElements.forEach( el => {
-      el.addEventListener('mouseenter',this.addCustomState)
-      el.addEventListener('mouseleave',this.removeCustomState)
+      el.removeEventListener('mouseenter',this.addCustomState)
+      el.removeEventListener('mouseleave',this.removeCustomState)
     })
 
-    // Add cursor text to elements with cursor-text
-    const cursorTextElements = Array.from( document.querySelectorAll('[data-cursor-text]') )
     cursorTextElements.forEach( el => {
-      el.addEventListener('mouseenter',this.setCursorText)
-      el.addEventListener('mouseleave',this.removeCursorText)
+      el.removeEventListener('mouseenter',this.setCursorText)
+      el.removeEventListener('mouseleave',this.removeCursorText)
     })
 
-    // Add cursor stick for elements with cursor-stick
-    const cursorStickElements = Array.from( document.querySelectorAll('[data-cursor-stick]') )
     cursorStickElements.forEach( el => {
-      el.addEventListener('mouseenter',this.enableStick)
-      el.addEventListener('mouseleave',this.disableStick)
+      el.removeEventListener('mouseenter',this.enableStick)
+      el.removeEventListener('mouseleave',this.disableStick)
     })
-    
-    // Reset cursor ball mousemove on window resize
-    // window.addEventListener('resize', this.resetMousemoveOnResize )
-  }
+
+    // window.removeEventListener('resize', this.resetMousemoveOnResize )
+
+}
 
   move(x, y, duration) {
 
@@ -227,4 +279,25 @@ export default class DvbCursor {
     });
   }
 
+  getAllPointerElements() {
+    const pointerStateElements = [
+      ...Array.from(document.querySelectorAll('a')),
+      ...Array.from(document.querySelectorAll('input')),
+      ...Array.from(document.querySelectorAll('textarea')),
+      ...Array.from(document.querySelectorAll('button'))
+    ]
+    const iframes = Array.from( document.querySelectorAll('iframe') )
+    const dataCursorElements = Array.from( document.querySelectorAll('[data-cursor]') )
+    const cursorTextElements = Array.from( document.querySelectorAll('[data-cursor-text]') )
+    const cursorStickElements = Array.from( document.querySelectorAll('[data-cursor-stick]') )
+
+
+    return {
+      pointerStateElements,
+      iframes,
+      dataCursorElements,
+      cursorTextElements,
+      cursorStickElements
+    }
+  }
 }
