@@ -74,8 +74,8 @@ export default class DvbCursor {
 
     // Set cursor to pointer when hovers on links, inputs, textarea and buttons
     pointerStateElements.forEach( el => {
-      el.addEventListener('mouseover', this.onCursor6)
-      el.addEventListener('mouseleave', this.onCursor7)
+      el.addEventListener('mouseover', this.setPointerState)
+      el.addEventListener('mouseleave', this.removePointerState)
     })
     
     // Hide cursor ball when an Iframe is hovered
@@ -265,7 +265,78 @@ export default class DvbCursor {
 
     // window.removeEventListener('resize', this.resetMousemoveOnResize )
 
-}
+  }
+
+  addNewlyRenderedSection(newSection,q) {
+
+    // Get all the elements we need for different cursor modes
+    const {
+      pointerStateElements,
+      iframes,
+      dataCursorElements,
+      cursorTextElements,
+      cursorStickElements
+    } = this.getAllPointerElements(newSection)
+    
+    // Set cursor to pointer when hovers on links, inputs, textarea and buttons
+    pointerStateElements.forEach( el => {
+      el.addEventListener('mouseover', this.setPointerState)
+      el.addEventListener('mouseleave', this.removePointerState)
+    })
+    
+    // Hide cursor ball when an Iframe is hovered
+    iframes.forEach( el => {
+      el.addEventListener('mouseenter',this.showCursorBall)
+      el.addEventListener('mouseleave',this.hideCursorBall)
+    })
+    
+    // Get elements with data-cursor and apply the classes or state to cursor ball
+    dataCursorElements.forEach( el => {
+      el.addEventListener('mouseenter',this.addCustomState)
+      el.addEventListener('mouseleave',this.removeCustomState)
+    })
+
+    // Add cursor text to elements with cursor-text
+    cursorTextElements.forEach( el => {
+      el.addEventListener('mouseenter',this.setCursorText)
+      el.addEventListener('mouseleave',this.removeCursorText)
+    })
+    
+    // Add cursor stick for elements with cursor-stick
+    cursorStickElements.forEach( el => {
+      el.addEventListener('mouseenter',this.enableStick)
+      el.addEventListener('mouseleave',this.disableStick)
+    })
+  }
+
+  setState(state) {
+    this.el.classList.add(state);
+  }
+
+  removeState(state) {
+    this.el.classList.remove(state);
+  }
+
+  toggleState(state) {
+    this.el.classList.toggle(state);
+  }
+
+  setText(text) {
+    this.text.innerText = text;
+    this.el.classList.add('-text');
+  }
+
+  removeText() {
+    this.el.classList.remove('-text');
+  }
+
+  setStick(el,childTarget = null ) {
+    // Sticking functionality
+  }
+
+  removeStick() {
+    this.stick = false;
+  }
 
   move(x, y, duration) {
 
@@ -279,17 +350,20 @@ export default class DvbCursor {
     });
   }
 
-  getAllPointerElements() {
+  getAllPointerElements(newSection = null) {
+
+    const container = newSection ? newSection : document
+
     const pointerStateElements = [
-      ...Array.from(document.querySelectorAll('a')),
-      ...Array.from(document.querySelectorAll('input')),
-      ...Array.from(document.querySelectorAll('textarea')),
-      ...Array.from(document.querySelectorAll('button'))
+      ...Array.from(container.querySelectorAll('a')),
+      ...Array.from(container.querySelectorAll('input')),
+      ...Array.from(container.querySelectorAll('textarea')),
+      ...Array.from(container.querySelectorAll('button'))
     ]
-    const iframes = Array.from( document.querySelectorAll('iframe') )
-    const dataCursorElements = Array.from( document.querySelectorAll('[data-cursor]') )
-    const cursorTextElements = Array.from( document.querySelectorAll('[data-cursor-text]') )
-    const cursorStickElements = Array.from( document.querySelectorAll('[data-cursor-stick]') )
+    const iframes = Array.from( container.querySelectorAll('iframe') )
+    const dataCursorElements = Array.from( container.querySelectorAll('[data-cursor]') )
+    const cursorTextElements = Array.from( container.querySelectorAll('[data-cursor-text]') )
+    const cursorStickElements = Array.from( container.querySelectorAll('[data-cursor-stick]') )
 
 
     return {
