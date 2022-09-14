@@ -366,7 +366,78 @@ export default class DvbCursor {
   }
 
   updatePhysics() {
-    
+    if (!this.visible || this.normalizing) return;
+
+    const {
+      x,
+      oldX,
+      y,
+      oldY,
+      oldAngle,
+      scaleX: oldScaleX,
+      scaleY: oldScaleY,
+    } = this.pos;
+
+    const speed = Math.min(25, calcSpeed(oldX, x, oldY, y));
+
+    let scaleX, scaleY, angle;
+    if (speed === 0) {
+      scaleX = 1;
+      scaleY = 1;
+      angle = oldAngle !== undefined ? oldAngle : 0;
+    } else {
+      scaleX = 1 + speed * 0.0045;
+      scaleY = 1 - speed * 0.0045;
+
+      // Calculate Angle of the mouse direction
+      angle = calcAngle(oldX, x, oldY, y);
+      if (oldAngle === undefined) this.pos.oldAngle = angle;
+    }
+
+    this.pos.scaleX = scaleX;
+    this.pos.scaleY = scaleY;
+
+    const angleDiff = calcAngleDiff(oldAngle, angle);
+
+    if (!this.lastPhysicsUpdate) this.lastPhysicsUpdate = 1;
+    else this.lastPhysicsUpdate += 1;
+
+    if (oldScaleX !== 1 && oldScaleY !== 1 && angleDiff > 60) {
+      angle = angle >= 180 ? angle - 180 : angle + 180;
+    }
+
+    changeBallShape(this, this.lastPhysicsUpdate);
+
+    if (angle !== oldAngle) {
+      this.pos.oldAngle = angle;
+    }
+
+    function changeBallShape(cursor, lastUpdate) {
+      gsap.to(cursor.ball, {
+        scaleX,
+        scaleY,
+        rotation: `${angle}_short`,
+        transformOrigin: "center center",
+        force3D: true,
+        overwrite: "auto",
+        ease: "expo.out",
+        duration: 0.2,
+        onComplete:
+          scaleX === 1 && scaleY === 1
+            ? () => {}
+            : () => {
+                if (lastUpdate !== cursor.lastPhysicsUpdate) return;
+
+                gsap.to(cursor.ball, {
+                  scaleX: 1,
+                  scaleY: 1,
+                  overwrite: "auto",
+                  ease: "expo.outIn",
+                  duration: 0.4,
+                });
+              },
+      });
+    }
   }
 
   getAllPointerElements(newSection = null) {
@@ -427,7 +498,7 @@ function calcSpeed(x1,x2,y1,y2) {
 
   const diff = Math.pow(xDiff,2) + Math.pow(yDiff,2)
 
-  return diff <= 6 ? 0 : Math.sqrt(diff)
+  return diff <= 9 ? 0 : Math.sqrt(diff)
 
 }
 
